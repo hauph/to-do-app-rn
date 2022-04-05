@@ -35,6 +35,7 @@ export const useToDoData = () => {
       const newTask = {
         id: generate(),
         task,
+        completed: false,
       };
 
       setToDoList([...toDoList, newTask]);
