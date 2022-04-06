@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import {
-  Button,
   Dimensions,
   StyleSheet,
   TextInput,
@@ -8,7 +7,7 @@ import {
   Pressable,
   Text,
 } from 'react-native';
-import {Title, Headline} from 'react-native-paper';
+import {Headline} from 'react-native-paper';
 import {useToDoData} from '../../hooks/hooks';
 import {ToDoList} from '../ToDoList/ToDoList';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,15 +30,16 @@ const Main = () => {
     })();
   }, []);
 
-  const {toDoList, addToDo} = useToDoData();
+  const {toDoList, addToDo, deleteToDo, updateToDoStatus, updateToDoPin} =
+    useToDoData();
 
   const handleAddToDo = () => {
-    addToDo(text);
+    addToDo(text.trim());
     setText('');
     setTextInputBorderColor('rgba(0, 0, 0, .1)');
   };
 
-  // console.log('toDoList >>>', toDoList);
+  console.log('toDoList >>>', toDoList);
   return (
     <>
       <View style={styles.generalMargin}>
@@ -68,7 +68,12 @@ const Main = () => {
         </Pressable>
       </View>
 
-      <ToDoList toDoList={toDoList} />
+      <ToDoList
+        toDoList={toDoList}
+        deleteToDo={deleteToDo}
+        updateToDoStatus={updateToDoStatus}
+        updateToDoPin={updateToDoPin}
+      />
     </>
   );
 };
