@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import {Headline} from 'react-native-paper';
 import {useToDoData} from '../../hooks/hooks';
-import {ToDoList} from '../ToDoList/ToDoList';
+import ToDoList from '../ToDoList/ToDoList';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Main = () => {
@@ -39,7 +39,7 @@ const Main = () => {
     setTextInputBorderColor('rgba(0, 0, 0, .1)');
   };
 
-  console.log('toDoList >>>', toDoList);
+  // console.log('toDoList >>>', toDoList);
   return (
     <>
       <View style={styles.generalMargin}>
@@ -73,6 +73,7 @@ const Main = () => {
         deleteToDo={deleteToDo}
         updateToDoStatus={updateToDoStatus}
         updateToDoPin={updateToDoPin}
+        main={true}
       />
     </>
   );

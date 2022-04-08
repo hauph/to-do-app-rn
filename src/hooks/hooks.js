@@ -65,20 +65,33 @@ export const useToDoData = () => {
   };
 
   const updateToDoPin = id => {
-    const newToDoList = toDoList.filter(task => task.key !== id);
-    const task = toDoList.find(t => t.key === id);
-    const {pin, pos} = task;
+    const newToDoList = toDoList.map(task => {
+      const {key, pin} = task;
 
-    if (pin) {
-      // Unpin
-      task.pin = false;
-      newToDoList.splice(pos, 0, task);
-    } else {
-      // pin
-      task.pin = true;
-      newToDoList.unshift(task);
-    }
+      if (key === id) {
+        if (pin) {
+          // Unpin
+          task.pin = false;
+        } else {
+          // pin
+          task.pin = true;
+        }
+      }
 
+      return task;
+    });
+    // const task = toDoList.find(t => t.key === id);
+    // const {pin, pos} = task;
+
+    // if (pin) {
+    //   // Unpin
+    //   task.pin = false;
+    // } else {
+    //   // pin
+    //   task.pin = true;
+    // }
+
+    // newToDoList.splice(pos, 0, task);
     setToDoList(newToDoList);
   };
 

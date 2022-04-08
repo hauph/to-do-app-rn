@@ -1,9 +1,8 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  TouchableHighlight,
   TouchableOpacity,
   Alert,
   Pressable,
@@ -11,12 +10,19 @@ import {
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {SwipeListView} from 'react-native-swipe-list-view';
+import PinnedToDoList from '../PinnedToDoList/PinnedToDoList';
 
 export const ToDoList = props => {
   // const [currentOpenRow, setCurrentOpenRow] = useState('');
   const [currentSelectedRow, setCurrentSelectedRow] = useState('');
+  const [currentPinnedList, setCurrentPinnedList] = useState([]);
 
-  const {toDoList} = props;
+  const {toDoList, deleteToDo, updateToDoStatus, updateToDoPin, main} = props;
+
+  useEffect(() => {
+    const pinnnedList = toDoList.filter(task => task.pin);
+    setCurrentPinnedList(pinnnedList);
+  }, [toDoList]);
 
   const closeRow = (rowKey, rowMap) => {
     if (rowMap[rowKey]) {
@@ -40,66 +46,95 @@ export const ToDoList = props => {
         onPress: () => console.log('cancel'),
         style: 'cancel',
       },
-      {text: 'OK', onPress: () => props.deleteToDo([rowKey])},
+      {text: 'OK', onPress: () => deleteToDo([rowKey])},
     ]);
   };
 
   const pinOrUnpinRow = (rowKey, rowMap) => {
-    props.updateToDoPin(rowKey);
+    updateToDoPin(rowKey);
     closeRow(rowKey, rowMap);
   };
 
-  const renderItem = (data, rowMap) => (
-    <Pressable
-      style={data.item.pin ? [styles.item, styles.pinned] : styles.item}
-      onPress={() => closeRow(data.item.key, rowMap)}>
-      <View style={{flexDirection: 'row'}}>
-        <Text
-          style={
-            data.item.completed
-              ? [styles.task, {textDecorationLine: 'line-through'}]
-              : styles.task
-          }
-          numberOfLines={1}>
-          {data.item.task}
-        </Text>
+  const renderItem = (data, rowMap) => {
+    let pressableStyle = main ? styles.item : [styles.item, styles.notMain];
+
+    if (data.item.pin && !main) {
+      pressableStyle = [pressableStyle, styles.pinned];
+    }
+
+    return data.item.pin && main ? (
+      <></>
+    ) : (
+      <Pressable
+        style={pressableStyle}
+        onPress={() => closeRow(data.item.key, rowMap)}>
+        <View style={{flexDirection: 'row'}}>
+          <Text
+            style={
+              data.item.completed
+                ? [styles.task, {textDecorationLine: 'line-through'}]
+                : styles.task
+            }
+            numberOfLines={1}>
+            {data.item.task}
+          </Text>
+        </View>
+      </Pressable>
+    );
+  };
+
+  const renderHiddenItem = (data, rowMap) =>
+    data.item.pin && main ? (
+      <></>
+    ) : (
+      <View
+        style={
+          main
+            ? [styles.rowBack, styles.item]
+            : [styles.rowBack, styles.item, styles.notMain]
+        }>
+        <TouchableOpacity
+          style={[styles.backRightBtn, styles.backLeftBtn]}
+          onPress={() => updateToDoStatus(data.item.key)}>
+          <FontAwesome5
+            name={data.item.completed ? 'check-circle' : 'circle'}
+            style={[styles.textWhite, styles.icon]}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.backRightBtn}
+          onPress={() => deleteRow(data.item.key)}>
+          <FontAwesome5
+            name={'trash-alt'}
+            style={[styles.textWhite, styles.icon]}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.backRightBtn, styles.backRightBtnLeft]}
+          onPress={() => pinOrUnpinRow(data.item.key, rowMap)}>
+          <Icon
+            name={data.item.pin ? 'pin-off-outline' : 'pin-outline'}
+            style={[styles.textWhite, styles.icon]}
+          />
+        </TouchableOpacity>
       </View>
-    </Pressable>
-  );
-
-  const renderHiddenItem = (data, rowMap) => (
-    <View style={[styles.rowBack, styles.item]}>
-      <TouchableOpacity
-        style={[styles.backRightBtn, styles.backLeftBtn]}
-        onPress={() => props.updateToDoStatus(data.item.key)}>
-        <FontAwesome5
-          name={data.item.completed ? 'check-circle' : 'circle'}
-          style={[styles.textWhite, styles.icon]}
-        />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.backRightBtn}
-        onPress={() => deleteRow(data.item.key)}>
-        <FontAwesome5
-          name={'trash-alt'}
-          style={[styles.textWhite, styles.icon]}
-        />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.backRightBtn, styles.backRightBtnLeft]}
-        onPress={() => pinOrUnpinRow(data.item.key, rowMap)}>
-        <Icon
-          name={data.item.pin ? 'pin-off-outline' : 'pin-outline'}
-          style={[styles.textWhite, styles.icon]}
-        />
-      </TouchableOpacity>
-    </View>
-  );
+    );
 
   return (
     <>
+      {currentPinnedList.length && main ? (
+        <View style={styles.pinnedView}>
+          <PinnedToDoList
+            pinnedList={currentPinnedList}
+            deleteToDo={deleteToDo}
+            updateToDoStatus={updateToDoStatus}
+            updateToDoPin={updateToDoPin}
+          />
+        </View>
+      ) : null}
+
       {toDoList.length ? (
         <SwipeListView
           data={toDoList}
@@ -156,7 +191,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#378805',
     left: 0,
   },
+  pinnedView: {
+    paddingLeft: 20,
+    paddingRight: 20,
+    marginBottom: 6,
+    marginTop: 2,
+  },
   pinned: {
-    backgroundColor: '#FFCC00',
+    backgroundColor: '#FFC0CB',
+  },
+  notMain: {
+    marginVertical: 0,
+    borderTopWidth: 0,
   },
 });
+
+export default ToDoList;
