@@ -11,6 +11,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import PinnedToDoList from '../PinnedToDoList/PinnedToDoList';
+import {Utils} from '../../utils';
 
 export const ToDoList = props => {
   // const [currentOpenRow, setCurrentOpenRow] = useState('');
@@ -20,8 +21,16 @@ export const ToDoList = props => {
   const {toDoList, deleteToDo, updateToDoStatus, updateToDoPin, main} = props;
 
   useEffect(() => {
-    const pinnnedList = toDoList.filter(task => task.pin);
-    setCurrentPinnedList(pinnnedList);
+    const pinnnedList = [];
+    toDoList.forEach(task => {
+      const {pin, pinnedIndex} = task;
+
+      if (pin && !Utils.isNullOrUndefined(pinnedIndex)) {
+        pinnnedList[pinnedIndex] = task;
+      }
+    });
+
+    setCurrentPinnedList(Utils.removeEmptyItemInArray(pinnnedList));
   }, [toDoList]);
 
   const closeRow = (rowKey, rowMap) => {
@@ -51,7 +60,7 @@ export const ToDoList = props => {
   };
 
   const pinOrUnpinRow = (rowKey, rowMap) => {
-    updateToDoPin(rowKey);
+    updateToDoPin([{id: rowKey, pinnedIndex: currentPinnedList.length}]);
     closeRow(rowKey, rowMap);
   };
 
@@ -95,7 +104,7 @@ export const ToDoList = props => {
         }>
         <TouchableOpacity
           style={[styles.backRightBtn, styles.backLeftBtn]}
-          onPress={() => updateToDoStatus(data.item.key)}>
+          onPress={() => updateToDoStatus([data.item.key])}>
           <FontAwesome5
             name={data.item.completed ? 'check-circle' : 'circle'}
             style={[styles.textWhite, styles.icon]}
@@ -122,6 +131,8 @@ export const ToDoList = props => {
       </View>
     );
 
+  // console.log('currentPinnedList >>>', currentPinnedList);
+
   return (
     <>
       {currentPinnedList.length && main ? (
@@ -142,6 +153,8 @@ export const ToDoList = props => {
           renderHiddenItem={renderHiddenItem}
           leftOpenValue={60}
           rightOpenValue={-120}
+          // disableLeftSwipe={true}
+          // disableRightSwipe={true}
           previewRowKey={toDoList[0].key}
           previewOpenValue={-30}
           previewOpenDelay={1000}

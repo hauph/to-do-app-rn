@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {StyleSheet} from 'react-native';
 import {List} from 'react-native-paper';
 import ToDoList from '../ToDoList/ToDoList';
 
 export const PinnedToDoList = props => {
+  const [expanded, setExpanded] = useState(true);
   const {pinnedList, deleteToDo, updateToDoStatus, updateToDoPin} = props;
 
   return (
@@ -11,7 +12,8 @@ export const PinnedToDoList = props => {
       title="Pinned Tasks"
       style={styles.listBackground}
       titleStyle={styles.listTitle}
-      expanded={true}>
+      expanded={expanded}
+      onPress={() => setExpanded(!expanded)}>
       <ToDoList
         toDoList={pinnedList}
         deleteToDo={deleteToDo}

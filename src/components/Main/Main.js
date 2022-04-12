@@ -6,6 +6,7 @@ import {
   View,
   Pressable,
   Text,
+  ScrollView,
 } from 'react-native';
 import {Headline} from 'react-native-paper';
 import {useToDoData} from '../../hooks/hooks';
@@ -14,8 +15,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Main = () => {
   const [text, setText] = useState('');
+  const [stickyHeaderStyle, setStickyHeaderStyle] = useState({
+    backgroundColor: '#fff',
+  });
   const [textInputBorderColor, setTextInputBorderColor] =
     useState('rgba(0, 0, 0, .1)');
+  const [dialogVisibility, setDialogVisibility] = useState(false);
 
   // Clear AsyncStorage. Should be used in DEV only
   useEffect(() => {
@@ -39,33 +44,67 @@ const Main = () => {
     setTextInputBorderColor('rgba(0, 0, 0, .1)');
   };
 
+  const handleOnScroll = e => {
+    const {nativeEvent} = e;
+    const {contentOffset} = nativeEvent;
+    let style = {
+      backgroundColor: '#fff',
+    };
+
+    if (contentOffset.y > 0) {
+      style = {
+        ...style,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0,0,0,.5)',
+      };
+    }
+
+    setStickyHeaderStyle(style);
+  };
+
   // console.log('toDoList >>>', toDoList);
   return (
-    <>
-      <View style={styles.generalMargin}>
-        <Pressable
-          style={styles.btnSelectTasks}
-          onPress={() => {
-            console.log('press');
-          }}>
-          <Text style={styles.btn}>Select tasks</Text>
-        </Pressable>
-        <Headline style={styles.headline}>Todos</Headline>
-      </View>
+    <ScrollView
+      scrollEventThrottle={5000}
+      stickyHeaderIndices={[0]}
+      horizontal={false}
+      onScroll={handleOnScroll}>
+      <View style={stickyHeaderStyle}>
+        <View style={styles.generalMargin}>
+          <View style={styles.selectTasksAndOtherActions}>
+            <Pressable
+              style={styles.btnSelectTasks}
+              onPress={() => {
+                console.log('press');
+              }}>
+              <Text style={styles.btn}>Select tasks</Text>
+            </Pressable>
 
-      <View style={[styles.view, styles.generalMargin]}>
-        <TextInput
-          style={[styles.input, {borderColor: textInputBorderColor}]}
-          value={text}
-          placeholder="What needs to be done?"
-          autoCapitalize="none"
-          onChangeText={setText}
-          onFocus={() => setTextInputBorderColor('rgba(0, 123, 255, 1)')}
-        />
+            <Pressable
+              style={styles.btnSelectTasks}
+              onPress={() => {
+                console.log('press ....');
+              }}>
+              <Text style={styles.btn}>...</Text>
+            </Pressable>
+          </View>
+          <Headline style={styles.headline}>Todos</Headline>
+        </View>
 
-        <Pressable onPress={handleAddToDo}>
-          <Text style={styles.btn}>Add</Text>
-        </Pressable>
+        <View style={[styles.view, styles.generalMargin]}>
+          <TextInput
+            style={[styles.input, {borderColor: textInputBorderColor}]}
+            value={text}
+            placeholder="What needs to be done?"
+            autoCapitalize="none"
+            onChangeText={setText}
+            onFocus={() => setTextInputBorderColor('rgba(0, 123, 255, 1)')}
+          />
+
+          <Pressable onPress={handleAddToDo}>
+            <Text style={styles.btn}>Add</Text>
+          </Pressable>
+        </View>
       </View>
 
       <ToDoList
@@ -75,7 +114,7 @@ const Main = () => {
         updateToDoPin={updateToDoPin}
         main={true}
       />
-    </>
+    </ScrollView>
   );
 };
 
@@ -108,6 +147,10 @@ const styles = StyleSheet.create({
   headline: {
     fontSize: 35,
     fontWeight: 'bold',
+  },
+  selectTasksAndOtherActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });
 

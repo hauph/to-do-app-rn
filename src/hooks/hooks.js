@@ -37,7 +37,7 @@ export const useToDoData = () => {
         task,
         completed: false,
         pin: false,
-        pos: toDoList.length,
+        pinnedIndex: null,
       };
 
       setToDoList([...toDoList, newTask]);
@@ -50,50 +50,73 @@ export const useToDoData = () => {
     setToDoList(newToDoList);
   };
 
-  const updateToDoStatus = id => {
+  const updateToDoStatus = idList => {
     const newToDoList = toDoList.map(task => {
       const {key, completed} = task;
 
-      if (key === id) {
-        task.completed = !completed;
-      }
+      for (let i = 0; i < idList.length; i++) {
+        const id = idList[i];
 
-      return task;
-    });
-
-    setToDoList(newToDoList);
-  };
-
-  const updateToDoPin = id => {
-    const newToDoList = toDoList.map(task => {
-      const {key, pin} = task;
-
-      if (key === id) {
-        if (pin) {
-          // Unpin
-          task.pin = false;
-        } else {
-          // pin
-          task.pin = true;
+        if (key === id) {
+          task.completed = !completed;
+          break;
         }
       }
 
       return task;
     });
-    // const task = toDoList.find(t => t.key === id);
-    // const {pin, pos} = task;
 
-    // if (pin) {
-    //   // Unpin
-    //   task.pin = false;
-    // } else {
-    //   // pin
-    //   task.pin = true;
-    // }
-
-    // newToDoList.splice(pos, 0, task);
     setToDoList(newToDoList);
   };
+
+  const updateToDoPin = dataList => {
+    const newToDoList = toDoList.map(task => {
+      const {key, pin} = task;
+
+      for (let i = 0; i < dataList.length; i++) {
+        const {id, pinnedIndex} = dataList[i];
+
+        if (key === id) {
+          if (pin) {
+            // Unpin
+            task.pin = false;
+          } else {
+            // pin
+            task.pin = true;
+          }
+
+          task.pinnedIndex = pinnedIndex;
+          break;
+        }
+      }
+
+      return task;
+    });
+
+    setToDoList(newToDoList);
+  };
+
+  // const updateToDoPin = (id, pinnedIndex = null) => {
+  //   const newToDoList = toDoList.map(task => {
+  //     const {key, pin} = task;
+
+  //     if (key === id) {
+  //       if (pin) {
+  //         // Unpin
+  //         task.pin = false;
+  //       } else {
+  //         // pin
+  //         task.pin = true;
+  //       }
+
+  //       task.pinnedIndex = pinnedIndex;
+  //     }
+
+  //     return task;
+  //   });
+
+  //   setToDoList(newToDoList);
+  // };
 
   return {toDoList, addToDo, deleteToDo, updateToDoStatus, updateToDoPin};
 };
