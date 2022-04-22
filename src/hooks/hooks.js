@@ -3,6 +3,7 @@
 import {useState, useEffect} from 'react';
 import {generate} from 'shortid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {Utils} from '../utils';
 
 export const useToDoData = () => {
   const [toDoList, setToDoList] = useState([]);
@@ -96,27 +97,34 @@ export const useToDoData = () => {
     setToDoList(newToDoList);
   };
 
-  // const updateToDoPin = (id, pinnedIndex = null) => {
-  //   const newToDoList = toDoList.map(task => {
-  //     const {key, pin} = task;
-
-  //     if (key === id) {
-  //       if (pin) {
-  //         // Unpin
-  //         task.pin = false;
-  //       } else {
-  //         // pin
-  //         task.pin = true;
-  //       }
-
-  //       task.pinnedIndex = pinnedIndex;
-  //     }
-
-  //     return task;
-  //   });
-
-  //   setToDoList(newToDoList);
-  // };
-
   return {toDoList, addToDo, deleteToDo, updateToDoStatus, updateToDoPin};
+};
+
+export const useViewType = () => {
+  const [viewType, setViewType] = useState('');
+
+  const loadData = async () => {
+    try {
+      const viewTypeData = await AsyncStorage.getItem('@ViewType');
+
+      if (viewTypeData) {
+        setViewType(Number(viewTypeData));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (!Utils.isNullOrUndefined(viewType)) {
+      return;
+    }
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.setItem('@ViewType', viewType.toString());
+  }, [viewType]);
+
+  return {viewType, setViewType};
 };

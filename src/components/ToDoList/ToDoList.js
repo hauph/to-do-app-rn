@@ -15,14 +15,36 @@ import {Utils} from '../../utils';
 
 export const ToDoList = props => {
   // const [currentOpenRow, setCurrentOpenRow] = useState('');
-  const [currentSelectedRow, setCurrentSelectedRow] = useState('');
+  // const [currentSelectedRow, setCurrentSelectedRow] = useState('');
   const [currentPinnedList, setCurrentPinnedList] = useState([]);
+  const [tdList, setTDList] = useState([]);
 
-  const {toDoList, deleteToDo, updateToDoStatus, updateToDoPin, main} = props;
+  const {
+    toDoList,
+    deleteToDo,
+    updateToDoStatus,
+    updateToDoPin,
+    main,
+    viewType,
+  } = props;
+
+  useEffect(() => {
+    let list = JSON.parse(JSON.stringify(toDoList));
+
+    if (viewType === 1) {
+      // Show Active tasks
+      list = toDoList.filter(task => !task.completed);
+    } else if (viewType === 2) {
+      // Show Completed tasks
+      list = toDoList.filter(task => task.completed);
+    }
+
+    setTDList(list);
+  }, [viewType, toDoList]);
 
   useEffect(() => {
     const pinnnedList = [];
-    toDoList.forEach(task => {
+    tdList.forEach(task => {
       const {pin, pinnedIndex} = task;
 
       if (pin && !Utils.isNullOrUndefined(pinnedIndex)) {
@@ -31,7 +53,7 @@ export const ToDoList = props => {
     });
 
     setCurrentPinnedList(Utils.removeEmptyItemInArray(pinnnedList));
-  }, [toDoList]);
+  }, [tdList]);
 
   const closeRow = (rowKey, rowMap) => {
     if (rowMap[rowKey]) {
@@ -142,20 +164,21 @@ export const ToDoList = props => {
             deleteToDo={deleteToDo}
             updateToDoStatus={updateToDoStatus}
             updateToDoPin={updateToDoPin}
+            viewType={viewType}
           />
         </View>
       ) : null}
 
-      {toDoList.length ? (
+      {tdList.length ? (
         <SwipeListView
-          data={toDoList}
+          data={tdList}
           renderItem={renderItem}
           renderHiddenItem={renderHiddenItem}
           leftOpenValue={60}
           rightOpenValue={-120}
           // disableLeftSwipe={true}
           // disableRightSwipe={true}
-          previewRowKey={toDoList[0].key}
+          previewRowKey={tdList[0].key}
           previewOpenValue={-30}
           previewOpenDelay={1000}
           // onRowDidOpen={onRowDidOpen}

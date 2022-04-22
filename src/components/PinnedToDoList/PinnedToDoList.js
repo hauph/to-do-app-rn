@@ -5,7 +5,8 @@ import ToDoList from '../ToDoList/ToDoList';
 
 export const PinnedToDoList = props => {
   const [expanded, setExpanded] = useState(true);
-  const {pinnedList, deleteToDo, updateToDoStatus, updateToDoPin} = props;
+  const {pinnedList, deleteToDo, updateToDoStatus, updateToDoPin, viewType} =
+    props;
 
   return (
     <List.Accordion
@@ -20,6 +21,7 @@ export const PinnedToDoList = props => {
         updateToDoStatus={updateToDoStatus}
         updateToDoPin={updateToDoPin}
         main={false}
+        viewType={viewType}
       />
     </List.Accordion>
   );

@@ -9,8 +9,9 @@ import {
   ScrollView,
 } from 'react-native';
 import {Headline} from 'react-native-paper';
-import {useToDoData} from '../../hooks/hooks';
+import {useToDoData, useViewType} from '../../hooks/hooks';
 import ToDoList from '../ToDoList/ToDoList';
+import ViewTypeDialog from '../ViewTypeDialog/ViewTypeDialog';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Main = () => {
@@ -38,6 +39,8 @@ const Main = () => {
   const {toDoList, addToDo, deleteToDo, updateToDoStatus, updateToDoPin} =
     useToDoData();
 
+  const {viewType, setViewType} = useViewType();
+
   const handleAddToDo = () => {
     addToDo(text.trim());
     setText('');
@@ -62,6 +65,11 @@ const Main = () => {
     setStickyHeaderStyle(style);
   };
 
+  const handleHideDialog = vType => {
+    setViewType(vType);
+    setDialogVisibility(false);
+  };
+
   // console.log('toDoList >>>', toDoList);
   return (
     <ScrollView
@@ -83,12 +91,14 @@ const Main = () => {
             <Pressable
               style={styles.btnSelectTasks}
               onPress={() => {
-                console.log('press ....');
+                setDialogVisibility(true);
               }}>
               <Text style={styles.btn}>...</Text>
             </Pressable>
           </View>
-          <Headline style={styles.headline}>Todos</Headline>
+          <Headline style={styles.headline}>
+            Todos {viewType === 1 ? '- Active' : '- Completed'}
+          </Headline>
         </View>
 
         <View style={[styles.view, styles.generalMargin]}>
@@ -113,6 +123,13 @@ const Main = () => {
         updateToDoStatus={updateToDoStatus}
         updateToDoPin={updateToDoPin}
         main={true}
+        viewType={viewType}
+      />
+
+      <ViewTypeDialog
+        visible={dialogVisibility}
+        hideDialog={handleHideDialog}
+        viewType={viewType}
       />
     </ScrollView>
   );
@@ -145,7 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   headline: {
-    fontSize: 35,
+    fontSize: 33,
     fontWeight: 'bold',
   },
   selectTasksAndOtherActions: {
