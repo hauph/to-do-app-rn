@@ -8,10 +8,9 @@ import {
   Text,
   ScrollView,
 } from 'react-native';
-import {Headline} from 'react-native-paper';
+import {Divider, Headline, Menu} from 'react-native-paper';
 import {useToDoData, useViewType} from '../../hooks/hooks';
 import ToDoList from '../ToDoList/ToDoList';
-import ViewTypeDialog from '../ViewTypeDialog/ViewTypeDialog';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Main = () => {
@@ -21,7 +20,13 @@ const Main = () => {
   });
   const [textInputBorderColor, setTextInputBorderColor] =
     useState('rgba(0, 0, 0, .1)');
-  const [dialogVisibility, setDialogVisibility] = useState(false);
+  const [menuVisibility, setMenuVisibility] = useState(false);
+  const [viewTypeLabel, setViewTypeLabel] = useState('');
+  const [multiSelect, setMultiSelect] = useState(false);
+
+  const {toDoList, addToDo, deleteToDo, updateToDoStatus, updateToDoPin} =
+    useToDoData();
+  const {viewType, setViewType} = useViewType();
 
   // Clear AsyncStorage. Should be used in DEV only
   useEffect(() => {
@@ -36,10 +41,19 @@ const Main = () => {
     })();
   }, []);
 
-  const {toDoList, addToDo, deleteToDo, updateToDoStatus, updateToDoPin} =
-    useToDoData();
-
-  const {viewType, setViewType} = useViewType();
+  useEffect(() => {
+    switch (viewType) {
+      case 1:
+        setViewTypeLabel('- Active');
+        break;
+      case 2:
+        setViewTypeLabel('- Completed');
+        break;
+      default:
+        setViewTypeLabel('');
+        break;
+    }
+  }, [viewType]);
 
   const handleAddToDo = () => {
     addToDo(text.trim());
@@ -65,9 +79,24 @@ const Main = () => {
     setStickyHeaderStyle(style);
   };
 
-  const handleHideDialog = vType => {
+  const handleSetViewType = vType => {
+    setMenuVisibility(false);
     setViewType(vType);
-    setDialogVisibility(false);
+  };
+
+  const handleClearCompletedTasks = () => {
+    const idList = toDoList.reduce((deleteListId, task) => {
+      const {completed, key} = task;
+
+      if (completed) {
+        deleteListId.push(key);
+      }
+
+      return deleteListId;
+    }, []);
+
+    deleteToDo(idList);
+    setMenuVisibility(false);
   };
 
   // console.log('toDoList >>>', toDoList);
@@ -83,22 +112,43 @@ const Main = () => {
             <Pressable
               style={styles.btnSelectTasks}
               onPress={() => {
-                console.log('press');
+                setMultiSelect(!multiSelect);
               }}>
-              <Text style={styles.btn}>Select tasks</Text>
+              <Text style={styles.btn}>
+                {!multiSelect ? 'Select tasks' : 'Actions'}
+              </Text>
             </Pressable>
 
-            <Pressable
-              style={styles.btnSelectTasks}
-              onPress={() => {
-                setDialogVisibility(true);
-              }}>
-              <Text style={styles.btn}>...</Text>
-            </Pressable>
+            <Menu
+              visible={menuVisibility}
+              onDismiss={() => setMenuVisibility(false)}
+              anchor={
+                <Pressable
+                  style={styles.btnSelectTasks}
+                  onPress={() => {
+                    setMenuVisibility(true);
+                  }}>
+                  <Text style={styles.btn}>...</Text>
+                </Pressable>
+              }>
+              {['all', 'active', 'completed'].map((label, index) => (
+                <Menu.Item
+                  key={label}
+                  titleStyle={index === viewType ? {color: '#007AFF'} : {}}
+                  onPress={() => {
+                    handleSetViewType(index);
+                  }}
+                  title={`View ${label} tasks`}
+                />
+              ))}
+              <Divider style={{backgroundColor: 'grey'}} />
+              <Menu.Item
+                onPress={handleClearCompletedTasks}
+                title="Clear completed tasks"
+              />
+            </Menu>
           </View>
-          <Headline style={styles.headline}>
-            Todos {viewType === 1 ? '- Active' : '- Completed'}
-          </Headline>
+          <Headline style={styles.headline}>Todos {viewTypeLabel}</Headline>
         </View>
 
         <View style={[styles.view, styles.generalMargin]}>
@@ -124,12 +174,7 @@ const Main = () => {
         updateToDoPin={updateToDoPin}
         main={true}
         viewType={viewType}
-      />
-
-      <ViewTypeDialog
-        visible={dialogVisibility}
-        hideDialog={handleHideDialog}
-        viewType={viewType}
+        multiSelect={multiSelect}
       />
     </ScrollView>
   );

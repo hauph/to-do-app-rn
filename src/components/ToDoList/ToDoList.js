@@ -18,6 +18,7 @@ export const ToDoList = props => {
   // const [currentSelectedRow, setCurrentSelectedRow] = useState('');
   const [currentPinnedList, setCurrentPinnedList] = useState([]);
   const [tdList, setTDList] = useState([]);
+  const [selectedList, setSelectedList] = useState([]);
 
   const {
     toDoList,
@@ -26,6 +27,7 @@ export const ToDoList = props => {
     updateToDoPin,
     main,
     viewType,
+    multiSelect,
   } = props;
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export const ToDoList = props => {
   //   setCurrentOpenRow(rowKey);
   // };
 
-  const deleteRow = rowKey => {
+  const handleDeleteRow = rowKey => {
     Alert.alert('Would you like to delete this task?', '', [
       {
         text: 'Cancel',
@@ -81,7 +83,7 @@ export const ToDoList = props => {
     ]);
   };
 
-  const pinOrUnpinRow = (rowKey, rowMap) => {
+  const handlePinOrUnpinRow = (rowKey, rowMap) => {
     updateToDoPin([{id: rowKey, pinnedIndex: currentPinnedList.length}]);
     closeRow(rowKey, rowMap);
   };
@@ -96,21 +98,49 @@ export const ToDoList = props => {
     return data.item.pin && main ? (
       <></>
     ) : (
-      <Pressable
-        style={pressableStyle}
-        onPress={() => closeRow(data.item.key, rowMap)}>
-        <View style={{flexDirection: 'row'}}>
-          <Text
-            style={
-              data.item.completed
-                ? [styles.task, {textDecorationLine: 'line-through'}]
-                : styles.task
-            }
-            numberOfLines={1}>
-            {data.item.task}
-          </Text>
-        </View>
-      </Pressable>
+      <View style={multiSelect ? styles.viewMultiSelect : {}}>
+        {multiSelect && (
+          <Pressable
+            onPress={() => closeRow(data.item.key, rowMap)}
+            style={{
+              width: 40,
+              marginLeft: 20,
+            }}>
+            {!selectedList.length ? (
+              <FontAwesome5 name="circle" style={[styles.icon]} />
+            ) : (
+              <FontAwesome5
+                name={
+                  !selectedList.includes(data.item.key)
+                    ? 'check-circle'
+                    : 'circle'
+                }
+                style={[styles.icon]}
+              />
+            )}
+          </Pressable>
+        )}
+
+        <Pressable
+          style={
+            !multiSelect
+              ? pressableStyle
+              : [pressableStyle, {flex: 1, marginRight: 5}]
+          }
+          onPress={() => closeRow(data.item.key, rowMap)}>
+          <View style={{flexDirection: 'row'}}>
+            <Text
+              style={
+                data.item.completed
+                  ? [styles.task, {textDecorationLine: 'line-through'}]
+                  : styles.task
+              }
+              numberOfLines={1}>
+              {data.item.task}
+            </Text>
+          </View>
+        </Pressable>
+      </View>
     );
   };
 
@@ -135,7 +165,7 @@ export const ToDoList = props => {
 
         <TouchableOpacity
           style={styles.backRightBtn}
-          onPress={() => deleteRow(data.item.key)}>
+          onPress={() => handleDeleteRow(data.item.key)}>
           <FontAwesome5
             name={'trash-alt'}
             style={[styles.textWhite, styles.icon]}
@@ -144,7 +174,7 @@ export const ToDoList = props => {
 
         <TouchableOpacity
           style={[styles.backRightBtn, styles.backRightBtnLeft]}
-          onPress={() => pinOrUnpinRow(data.item.key, rowMap)}>
+          onPress={() => handlePinOrUnpinRow(data.item.key, rowMap)}>
           <Icon
             name={data.item.pin ? 'pin-off-outline' : 'pin-outline'}
             style={[styles.textWhite, styles.icon]}
@@ -165,6 +195,7 @@ export const ToDoList = props => {
             updateToDoStatus={updateToDoStatus}
             updateToDoPin={updateToDoPin}
             viewType={viewType}
+            multiSelect={multiSelect}
           />
         </View>
       ) : null}
@@ -176,8 +207,8 @@ export const ToDoList = props => {
           renderHiddenItem={renderHiddenItem}
           leftOpenValue={60}
           rightOpenValue={-120}
-          // disableLeftSwipe={true}
-          // disableRightSwipe={true}
+          disableLeftSwipe={multiSelect}
+          disableRightSwipe={multiSelect}
           previewRowKey={tdList[0].key}
           previewOpenValue={-30}
           previewOpenDelay={1000}
@@ -239,6 +270,11 @@ const styles = StyleSheet.create({
   notMain: {
     marginVertical: 0,
     borderTopWidth: 0,
+  },
+  viewMultiSelect: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    alignItems: 'center',
   },
 });
 
