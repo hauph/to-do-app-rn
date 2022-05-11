@@ -81,12 +81,13 @@ export const useToDoData = () => {
           if (pin) {
             // Unpin
             task.pin = false;
+            task.pinnedIndex = null;
           } else {
             // pin
             task.pin = true;
+            task.pinnedIndex = pinnedIndex;
           }
 
-          task.pinnedIndex = pinnedIndex;
           break;
         }
       }
@@ -101,7 +102,7 @@ export const useToDoData = () => {
 };
 
 export const useViewType = () => {
-  const [viewType, setViewType] = useState('');
+  const [viewType, setViewType] = useState(0);
 
   const loadData = async () => {
     try {

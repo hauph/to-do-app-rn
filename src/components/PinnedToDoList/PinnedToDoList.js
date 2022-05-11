@@ -5,14 +5,6 @@ import ToDoList from '../ToDoList/ToDoList';
 
 export const PinnedToDoList = props => {
   const [expanded, setExpanded] = useState(true);
-  const {
-    pinnedList,
-    deleteToDo,
-    updateToDoStatus,
-    updateToDoPin,
-    viewType,
-    multiSelect,
-  } = props;
 
   return (
     <List.Accordion
@@ -21,15 +13,7 @@ export const PinnedToDoList = props => {
       titleStyle={styles.listTitle}
       expanded={expanded}
       onPress={() => setExpanded(!expanded)}>
-      <ToDoList
-        toDoList={pinnedList}
-        deleteToDo={deleteToDo}
-        updateToDoStatus={updateToDoStatus}
-        updateToDoPin={updateToDoPin}
-        main={false}
-        viewType={viewType}
-        multiSelect={multiSelect}
-      />
+      <ToDoList {...props} main={false} />
     </List.Accordion>
   );
 };

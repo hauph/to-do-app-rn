@@ -1,33 +1,29 @@
 import React, {useState, useEffect} from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Alert,
-  Pressable,
-} from 'react-native';
+import {Text, View, TouchableOpacity, Alert, Pressable} from 'react-native';
+import {List} from 'react-native-paper';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {SwipeListView} from 'react-native-swipe-list-view';
-import PinnedToDoList from '../PinnedToDoList/PinnedToDoList';
 import {Utils} from '../../utils';
+import {ToDoListStyles as styles} from './ToDoList.style';
 
 export const ToDoList = props => {
   // const [currentOpenRow, setCurrentOpenRow] = useState('');
   // const [currentSelectedRow, setCurrentSelectedRow] = useState('');
   const [currentPinnedList, setCurrentPinnedList] = useState([]);
   const [tdList, setTDList] = useState([]);
-  const [selectedList, setSelectedList] = useState([]);
+  const [expanded, setExpanded] = useState(true);
 
   const {
     toDoList,
     deleteToDo,
     updateToDoStatus,
     updateToDoPin,
-    main,
     viewType,
     multiSelect,
+    selectedList,
+    setSelectedList,
+    isBulkPin,
   } = props;
 
   useEffect(() => {
@@ -45,17 +41,34 @@ export const ToDoList = props => {
   }, [viewType, toDoList]);
 
   useEffect(() => {
-    const pinnnedList = [];
-    tdList.forEach(task => {
+    const pinnnedList = tdList.reduce((arr, task) => {
       const {pin, pinnedIndex} = task;
 
       if (pin && !Utils.isNullOrUndefined(pinnedIndex)) {
-        pinnnedList[pinnedIndex] = task;
+        arr[pinnedIndex] = task;
       }
-    });
+
+      return arr;
+    }, []);
 
     setCurrentPinnedList(Utils.removeEmptyItemInArray(pinnnedList));
   }, [tdList]);
+
+  useEffect(() => {
+    if (isBulkPin) {
+      let index = currentPinnedList.length - 1;
+      const data = selectedList.map(item => {
+        index += 1;
+        return {
+          id: item,
+          pinnedIndex: index,
+        };
+      });
+
+      updateToDoPin(data);
+      setSelectedList([]);
+    }
+  }, [isBulkPin]);
 
   const closeRow = (rowKey, rowMap) => {
     if (rowMap[rowKey]) {
@@ -88,20 +101,29 @@ export const ToDoList = props => {
     closeRow(rowKey, rowMap);
   };
 
-  const renderItem = (data, rowMap) => {
-    let pressableStyle = main ? styles.item : [styles.item, styles.notMain];
+  const handleMultiSelect = id => {
+    let idList = [...selectedList];
 
-    if (data.item.pin && !main) {
-      pressableStyle = [pressableStyle, styles.pinned];
+    if (idList.includes(id)) {
+      idList = idList.filter(_id => _id !== id);
+    } else {
+      idList.push(id);
+    }
+    setSelectedList(idList);
+  };
+
+  const renderItem = (data, rowMap) => {
+    let pressableStyle = styles.item;
+
+    if (data.item.pin) {
+      pressableStyle = [pressableStyle, styles.pinned, styles.notMain];
     }
 
-    return data.item.pin && main ? (
-      <></>
-    ) : (
+    return (
       <View style={multiSelect ? styles.viewMultiSelect : {}}>
         {multiSelect && (
           <Pressable
-            onPress={() => closeRow(data.item.key, rowMap)}
+            onPress={() => handleMultiSelect(data.item.key)}
             style={{
               width: 40,
               marginLeft: 20,
@@ -111,7 +133,7 @@ export const ToDoList = props => {
             ) : (
               <FontAwesome5
                 name={
-                  !selectedList.includes(data.item.key)
+                  selectedList.includes(data.item.key)
                     ? 'check-circle'
                     : 'circle'
                 }
@@ -122,11 +144,7 @@ export const ToDoList = props => {
         )}
 
         <Pressable
-          style={
-            !multiSelect
-              ? pressableStyle
-              : [pressableStyle, {flex: 1, marginRight: 5}]
-          }
+          style={!multiSelect ? pressableStyle : [pressableStyle, {flex: 1}]}
           onPress={() => closeRow(data.item.key, rowMap)}>
           <View style={{flexDirection: 'row'}}>
             <Text
@@ -144,72 +162,83 @@ export const ToDoList = props => {
     );
   };
 
-  const renderHiddenItem = (data, rowMap) =>
-    data.item.pin && main ? (
-      <></>
-    ) : (
-      <View
-        style={
-          main
-            ? [styles.rowBack, styles.item]
-            : [styles.rowBack, styles.item, styles.notMain]
-        }>
-        <TouchableOpacity
-          style={[styles.backRightBtn, styles.backLeftBtn]}
-          onPress={() => updateToDoStatus([data.item.key])}>
-          <FontAwesome5
-            name={data.item.completed ? 'check-circle' : 'circle'}
-            style={[styles.textWhite, styles.icon]}
-          />
-        </TouchableOpacity>
+  const renderHiddenItem = (data, rowMap) => (
+    <View
+      style={
+        data.item.pin
+          ? [styles.rowBack, styles.item, styles.notMain]
+          : [styles.rowBack, styles.item]
+      }>
+      <TouchableOpacity
+        style={[styles.backRightBtn, styles.backLeftBtn]}
+        onPress={() => updateToDoStatus([data.item.key])}>
+        <FontAwesome5
+          name={data.item.completed ? 'check-circle' : 'circle'}
+          style={[styles.textWhite, styles.icon]}
+        />
+      </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.backRightBtn}
-          onPress={() => handleDeleteRow(data.item.key)}>
-          <FontAwesome5
-            name={'trash-alt'}
-            style={[styles.textWhite, styles.icon]}
-          />
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.backRightBtn}
+        onPress={() => handleDeleteRow(data.item.key)}>
+        <FontAwesome5
+          name={'trash-alt'}
+          style={[styles.textWhite, styles.icon]}
+        />
+      </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.backRightBtn, styles.backRightBtnLeft]}
-          onPress={() => handlePinOrUnpinRow(data.item.key, rowMap)}>
-          <Icon
-            name={data.item.pin ? 'pin-off-outline' : 'pin-outline'}
-            style={[styles.textWhite, styles.icon]}
-          />
-        </TouchableOpacity>
-      </View>
-    );
+      <TouchableOpacity
+        style={[styles.backRightBtn, styles.backRightBtnLeft]}
+        onPress={() => handlePinOrUnpinRow(data.item.key, rowMap)}>
+        <Icon
+          name={data.item.pin ? 'pin-off-outline' : 'pin-outline'}
+          style={[styles.textWhite, styles.icon]}
+        />
+      </TouchableOpacity>
+    </View>
+  );
 
   // console.log('currentPinnedList >>>', currentPinnedList);
 
   return (
     <>
-      {currentPinnedList.length && main ? (
+      {currentPinnedList.length ? (
         <View style={styles.pinnedView}>
-          <PinnedToDoList
-            pinnedList={currentPinnedList}
-            deleteToDo={deleteToDo}
-            updateToDoStatus={updateToDoStatus}
-            updateToDoPin={updateToDoPin}
-            viewType={viewType}
-            multiSelect={multiSelect}
-          />
+          <List.Accordion
+            title="Pinned Tasks"
+            style={styles.listBackground}
+            titleStyle={styles.listTitle}
+            expanded={expanded}
+            onPress={() => setExpanded(!expanded)}>
+            <SwipeListView
+              data={currentPinnedList}
+              renderItem={renderItem}
+              renderHiddenItem={renderHiddenItem}
+              leftOpenValue={60}
+              rightOpenValue={-120}
+              disableLeftSwipe={multiSelect}
+              disableRightSwipe={multiSelect}
+              previewRowKey={multiSelect ? '' : currentPinnedList[0].key}
+              previewOpenValue={-30}
+              previewOpenDelay={1000}
+              // onRowDidOpen={onRowDidOpen}
+            />
+          </List.Accordion>
         </View>
       ) : null}
 
       {tdList.length ? (
         <SwipeListView
-          data={tdList}
+          data={tdList.filter(item => !item.pin)}
           renderItem={renderItem}
           renderHiddenItem={renderHiddenItem}
           leftOpenValue={60}
           rightOpenValue={-120}
           disableLeftSwipe={multiSelect}
           disableRightSwipe={multiSelect}
-          previewRowKey={tdList[0].key}
+          previewRowKey={
+            multiSelect ? '' : tdList.filter(item => !item.pin)[0].key
+          }
           previewOpenValue={-30}
           previewOpenDelay={1000}
           // onRowDidOpen={onRowDidOpen}
@@ -218,64 +247,5 @@ export const ToDoList = props => {
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  item: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,.1)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,.1)',
-    padding: 20,
-    marginVertical: 8,
-    backgroundColor: '#fff',
-  },
-  task: {
-    fontSize: 16,
-  },
-  icon: {
-    fontSize: 25,
-  },
-  textWhite: {
-    color: '#fff',
-  },
-  rowBack: {
-    flex: 1,
-  },
-  backRightBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-    width: 60,
-    height: 60,
-    backgroundColor: 'red',
-    right: 0,
-  },
-  backRightBtnLeft: {
-    backgroundColor: 'blue',
-    right: 60,
-  },
-  backLeftBtn: {
-    backgroundColor: '#378805',
-    left: 0,
-  },
-  pinnedView: {
-    paddingLeft: 20,
-    paddingRight: 20,
-    marginBottom: 6,
-    marginTop: 2,
-  },
-  pinned: {
-    backgroundColor: '#FFC0CB',
-  },
-  notMain: {
-    marginVertical: 0,
-    borderTopWidth: 0,
-  },
-  viewMultiSelect: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-});
 
 export default ToDoList;

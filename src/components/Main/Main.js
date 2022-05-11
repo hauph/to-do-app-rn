@@ -1,32 +1,38 @@
 import React, {useState, useEffect} from 'react';
 import {
-  Dimensions,
-  StyleSheet,
+  Alert,
   TextInput,
   View,
   Pressable,
   Text,
   ScrollView,
 } from 'react-native';
-import {Divider, Headline, Menu} from 'react-native-paper';
+import {Headline} from 'react-native-paper';
 import {useToDoData, useViewType} from '../../hooks/hooks';
 import ToDoList from '../ToDoList/ToDoList';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import BulkActions from '../BulkActions/BulkActions';
+import BaseMenu from '../BaseMenu/BaseMenu';
+import {MainStyles as styles} from './Main.style';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Main = () => {
+  const {toDoList, addToDo, deleteToDo, updateToDoStatus, updateToDoPin} =
+    useToDoData();
+  const {viewType, setViewType} = useViewType();
+
   const [text, setText] = useState('');
   const [stickyHeaderStyle, setStickyHeaderStyle] = useState({
     backgroundColor: '#fff',
   });
   const [textInputBorderColor, setTextInputBorderColor] =
     useState('rgba(0, 0, 0, .1)');
-  const [menuVisibility, setMenuVisibility] = useState(false);
   const [viewTypeLabel, setViewTypeLabel] = useState('');
+  const [menuVisibility, setMenuVisibility] = useState(false);
+  const [leftMenuVisibility, setLeftMenuVisibility] = useState(false);
   const [multiSelect, setMultiSelect] = useState(false);
-
-  const {toDoList, addToDo, deleteToDo, updateToDoStatus, updateToDoPin} =
-    useToDoData();
-  const {viewType, setViewType} = useViewType();
+  const [isBulkPin, setIsBulkPin] = useState(false);
+  const [completedIdList, setCompletedIdList] = useState([]);
+  const [selectedList, setSelectedList] = useState([]);
 
   // Clear AsyncStorage. Should be used in DEV only
   useEffect(() => {
@@ -54,6 +60,22 @@ const Main = () => {
         break;
     }
   }, [viewType]);
+
+  useEffect(() => {
+    if (toDoList.length) {
+      const idList = toDoList.reduce((deleteListId, task) => {
+        const {completed, key} = task;
+
+        if (completed) {
+          deleteListId.push(key);
+        }
+
+        return deleteListId;
+      }, []);
+
+      setCompletedIdList(idList);
+    }
+  }, [toDoList]);
 
   const handleAddToDo = () => {
     addToDo(text.trim());
@@ -85,21 +107,56 @@ const Main = () => {
   };
 
   const handleClearCompletedTasks = () => {
-    const idList = toDoList.reduce((deleteListId, task) => {
-      const {completed, key} = task;
-
-      if (completed) {
-        deleteListId.push(key);
-      }
-
-      return deleteListId;
-    }, []);
-
-    deleteToDo(idList);
     setMenuVisibility(false);
+
+    Alert.alert(
+      `Would you like to delete completed task${
+        completedIdList.length > 1 ? 's' : ''
+      }?`,
+      '',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('cancel'),
+          style: 'cancel',
+        },
+        {
+          text: 'OK',
+          onPress: () => {
+            deleteToDo(completedIdList);
+          },
+        },
+      ],
+    );
   };
 
-  // console.log('toDoList >>>', toDoList);
+  const handleBulkCheck = () => {
+    updateToDoStatus(selectedList);
+    setLeftMenuVisibility(false);
+    setSelectedList([]);
+  };
+
+  const handleBulkDelete = () => {
+    deleteToDo(selectedList);
+    setLeftMenuVisibility(false);
+    setSelectedList([]);
+  };
+
+  const handleBulkPin = () => {
+    setIsBulkPin(true);
+
+    setTimeout(() => {
+      setLeftMenuVisibility(false);
+      setIsBulkPin(false);
+    }, 500);
+  };
+
+  const handleDoneMultiSelect = () => {
+    setLeftMenuVisibility(false);
+    setMultiSelect(false);
+    setSelectedList([]);
+  };
+
   return (
     <ScrollView
       scrollEventThrottle={5000}
@@ -109,44 +166,62 @@ const Main = () => {
       <View style={stickyHeaderStyle}>
         <View style={styles.generalMargin}>
           <View style={styles.selectTasksAndOtherActions}>
-            <Pressable
-              style={styles.btnSelectTasks}
-              onPress={() => {
-                setMultiSelect(!multiSelect);
-              }}>
-              <Text style={styles.btn}>
-                {!multiSelect ? 'Select tasks' : 'Actions'}
-              </Text>
-            </Pressable>
+            <BulkActions
+              multiSelect={multiSelect}
+              setMultiSelect={setMultiSelect}
+              visible={leftMenuVisibility}
+              setLeftMenuVisibility={setLeftMenuVisibility}
+              onCheck={handleBulkCheck}
+              onDelete={handleBulkDelete}
+              onPin={handleBulkPin}
+              onDone={handleDoneMultiSelect}
+            />
 
-            <Menu
-              visible={menuVisibility}
-              onDismiss={() => setMenuVisibility(false)}
-              anchor={
-                <Pressable
-                  style={styles.btnSelectTasks}
-                  onPress={() => {
-                    setMenuVisibility(true);
-                  }}>
-                  <Text style={styles.btn}>...</Text>
-                </Pressable>
-              }>
-              {['all', 'active', 'completed'].map((label, index) => (
-                <Menu.Item
-                  key={label}
-                  titleStyle={index === viewType ? {color: '#007AFF'} : {}}
-                  onPress={() => {
-                    handleSetViewType(index);
-                  }}
-                  title={`View ${label} tasks`}
-                />
-              ))}
-              <Divider style={{backgroundColor: 'grey'}} />
-              <Menu.Item
-                onPress={handleClearCompletedTasks}
-                title="Clear completed tasks"
-              />
-            </Menu>
+            <BaseMenu
+              menuProps={{
+                visible: menuVisibility,
+                onDismiss: () => setMenuVisibility(false),
+                anchor: (
+                  <Pressable
+                    style={styles.btnSelectTasks}
+                    onPress={() => {
+                      setMenuVisibility(true);
+                    }}>
+                    <Text style={styles.btn}>...</Text>
+                  </Pressable>
+                ),
+              }}
+              options={[
+                {
+                  key: 'all',
+                  titleStyle: viewType === 0 ? {color: '#007AFF'} : {},
+                  onPress: () => handleSetViewType(0),
+                  title: 'View all tasks',
+                },
+                {
+                  key: 'active',
+                  titleStyle: viewType === 1 ? {color: '#007AFF'} : {},
+                  onPress: () => handleSetViewType(1),
+                  title: 'View active tasks',
+                },
+                {
+                  key: 'completed',
+                  titleStyle: viewType === 2 ? {color: '#007AFF'} : {},
+                  onPress: () => handleSetViewType(2),
+                  title: 'View completed tasks',
+                },
+              ]}
+              showDivider={true}
+              dividerProps={{style: {backgroundColor: 'grey'}}}
+              optionsAfterDivider={[
+                {
+                  key: 'one',
+                  disabled: completedIdList.length === 0,
+                  onPress: () => handleClearCompletedTasks(),
+                  title: 'Clear completed tasks',
+                },
+              ]}
+            />
           </View>
           <Headline style={styles.headline}>Todos {viewTypeLabel}</Headline>
         </View>
@@ -172,48 +247,14 @@ const Main = () => {
         deleteToDo={deleteToDo}
         updateToDoStatus={updateToDoStatus}
         updateToDoPin={updateToDoPin}
-        main={true}
         viewType={viewType}
         multiSelect={multiSelect}
+        selectedList={selectedList}
+        setSelectedList={setSelectedList}
+        isBulkPin={isBulkPin}
       />
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  generalMargin: {
-    marginHorizontal: 20,
-  },
-  view: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  input: {
-    width: Dimensions.get('window').width - 80,
-    height: 60,
-    margin: 12,
-    marginLeft: 0,
-    padding: 16,
-    borderWidth: 1,
-    fontSize: 24,
-    borderRadius: 4,
-  },
-  btn: {
-    color: '#007AFF',
-    fontSize: 18,
-  },
-  btnSelectTasks: {
-    marginBottom: 20,
-  },
-  headline: {
-    fontSize: 33,
-    fontWeight: 'bold',
-  },
-  selectTasksAndOtherActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-});
 
 export default Main;
