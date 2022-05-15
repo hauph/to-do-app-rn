@@ -106,28 +106,34 @@ const Main = () => {
     setViewType(vType);
   };
 
-  const handleClearCompletedTasks = () => {
-    setMenuVisibility(false);
-
-    Alert.alert(
-      `Would you like to delete completed task${
-        completedIdList.length > 1 ? 's' : ''
-      }?`,
-      '',
-      [
+  const alertDeleteTasks = (title, message) => {
+    return new Promise((resolve, reject) => {
+      Alert.alert(title, message, [
         {
           text: 'Cancel',
-          onPress: () => console.log('cancel'),
+          onPress: () => resolve({status: 0}),
           style: 'cancel',
         },
         {
           text: 'OK',
-          onPress: () => {
-            deleteToDo(completedIdList);
-          },
+          onPress: () => resolve({status: 1}),
         },
-      ],
+      ]);
+    });
+  };
+
+  const handleClearCompletedTasks = async () => {
+    setMenuVisibility(false);
+    const alert = await alertDeleteTasks(
+      `Would you like to delete completed task${
+        completedIdList.length > 1 ? 's' : ''
+      }?`,
+      '',
     );
+
+    if (alert.status) {
+      deleteToDo(completedIdList);
+    }
   };
 
   const handleBulkCheck = () => {
@@ -136,10 +142,20 @@ const Main = () => {
     setSelectedList([]);
   };
 
-  const handleBulkDelete = () => {
-    deleteToDo(selectedList);
+  const handleBulkDelete = async () => {
     setLeftMenuVisibility(false);
-    setSelectedList([]);
+
+    const alert = await alertDeleteTasks(
+      `Would you like to delete selected task${
+        selectedList.length > 1 ? 's' : ''
+      }?`,
+      '',
+    );
+
+    if (alert.status) {
+      deleteToDo(selectedList);
+      setSelectedList([]);
+    }
   };
 
   const handleBulkPin = () => {
