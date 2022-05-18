@@ -1,6 +1,6 @@
 import {StyleSheet, Dimensions} from 'react-native';
 
-export const MainStyles = StyleSheet.create({
+export const HomeStyles = StyleSheet.create({
   generalMargin: {
     marginHorizontal: 20,
   },

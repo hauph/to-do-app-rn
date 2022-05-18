@@ -8,8 +8,7 @@ import {Utils} from '../../utils';
 import {ToDoListStyles as styles} from './ToDoList.style';
 
 export const ToDoList = props => {
-  // const [currentOpenRows, setCurrentOpenRows] = useState([]);
-  // const [currentSelectedRow, setCurrentSelectedRow] = useState('');
+  const [currentOpenRows, setCurrentOpenRows] = useState({});
   const [currentPinnedList, setCurrentPinnedList] = useState([]);
   const [tdList, setTDList] = useState([]);
   const [expanded, setExpanded] = useState(true);
@@ -24,6 +23,7 @@ export const ToDoList = props => {
     selectedList,
     setSelectedList,
     isBulkPin,
+    setCurrentSelectedRow,
   } = props;
 
   useEffect(() => {
@@ -83,17 +83,41 @@ export const ToDoList = props => {
     }
   }, [isBulkPin]);
 
-  const closeRow = (rowKey, rowMap) => {
-    if (rowMap[rowKey]) {
-      rowMap[rowKey].closeRow();
+  const handleOnRowClick = task => {
+    const clonedCurrentOpenRows = {...currentOpenRows};
+    const keys = Object.keys(clonedCurrentOpenRows);
+
+    if (keys.length) {
+      keys.forEach(key => {
+        if (task.key !== key) {
+          clonedCurrentOpenRows[key].closeRow();
+          delete clonedCurrentOpenRows[key];
+        }
+      });
+
+      setCurrentOpenRows(clonedCurrentOpenRows);
+    } else {
+      setCurrentSelectedRow(task);
     }
   };
 
-  // const handlRowDidOpen = rowKey => {
-  //   const clonedCurrentOpenRows = [...currentOpenRows];
-  //   clonedCurrentOpenRows.push(rowKey);
-  //   setCurrentOpenRows(clonedCurrentOpenRows);
-  // };
+  const handlRowOpen = (rowKey, rowMap) => {
+    const clonedCurrentOpenRows = {
+      ...currentOpenRows,
+      [rowKey]: rowMap[rowKey],
+    };
+
+    setCurrentOpenRows(clonedCurrentOpenRows);
+  };
+
+  const handlRowDidOpen = rowKey => {
+    // Find task in tdList
+    const task = tdList.find(item => item.key === rowKey);
+
+    if (task) {
+      handleOnRowClick(task);
+    }
+  };
 
   // const handleRowDidClose = rowKey => {
   //   const clonedCurrentOpenRows = [...currentOpenRows];
@@ -126,7 +150,6 @@ export const ToDoList = props => {
     }, null);
 
     updateToDoPin([{id: rowKey, pinnedIndex: latestPinnedIndex + 1}]);
-    closeRow(rowKey, rowMap);
   };
 
   const handleMultiSelect = id => {
@@ -181,7 +204,7 @@ export const ToDoList = props => {
 
         <Pressable
           style={!multiSelect ? pressableStyle : [pressableStyle, {flex: 1}]}
-          onPress={() => (!multiSelect ? closeRow(data.item.key, rowMap) : {})}>
+          onPress={() => (!multiSelect ? handleOnRowClick(data.item) : {})}>
           <View style={{flexDirection: 'row'}}>
             <Text
               style={
@@ -258,7 +281,8 @@ export const ToDoList = props => {
               previewRowKey={multiSelect ? '' : currentPinnedList[0].key}
               previewOpenValue={-30}
               previewOpenDelay={1000}
-              // onRowDidOpen={handlRowDidOpen}
+              onRowOpen={handlRowOpen}
+              onRowDidOpen={handlRowDidOpen}
               // onRowDidClose={handleRowDidClose}
             />
           </List.Accordion>
@@ -281,7 +305,8 @@ export const ToDoList = props => {
           }
           previewOpenValue={-30}
           previewOpenDelay={1000}
-          // onRowDidOpen={handlRowDidOpen}
+          onRowOpen={handlRowOpen}
+          onRowDidOpen={handlRowDidOpen}
           // onRowDidClose={handleRowDidClose}
         />
       ) : null}
