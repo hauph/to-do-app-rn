@@ -6,8 +6,14 @@ import {Utils} from '../../utils';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Main = () => {
-  const {toDoList, addToDo, deleteToDo, updateToDoStatus, updateToDoPin} =
-    useToDoData();
+  const {
+    toDoList,
+    addToDo,
+    deleteToDo,
+    updateToDoStatus,
+    updateToDoPin,
+    editToDo,
+  } = useToDoData();
   const [currentSelectedRow, setCurrentSelectedRow] = useState(null);
 
   // Clear AsyncStorage. Should be used in DEV only
@@ -34,8 +40,11 @@ const Main = () => {
     />
   ) : (
     <Edit
-      task={currentSelectedRow}
+      data={currentSelectedRow}
       goBack={() => setCurrentSelectedRow(null)}
+      deleteToDo={deleteToDo}
+      updateToDoStatus={updateToDoStatus}
+      editToDo={editToDo}
     />
   );
 };

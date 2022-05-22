@@ -149,6 +149,13 @@ export const ToDoList = props => {
       return number;
     }, null);
 
+    setTimeout(() => {
+      // Remove corresponding row in currentOpenRows
+      const clonedCurrentOpenRows = {...currentOpenRows};
+      delete clonedCurrentOpenRows[rowKey];
+      setCurrentOpenRows(clonedCurrentOpenRows);
+    }, 500);
+
     updateToDoPin([{id: rowKey, pinnedIndex: latestPinnedIndex + 1}]);
   };
 

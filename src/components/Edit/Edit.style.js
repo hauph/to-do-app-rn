@@ -23,4 +23,11 @@ export const EditStyles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  input: {
+    height: 300,
+    padding: 16,
+    borderWidth: 1,
+    fontSize: 24,
+    borderRadius: 4,
+  },
 });

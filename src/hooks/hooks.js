@@ -98,7 +98,26 @@ export const useToDoData = () => {
     setToDoList(newToDoList);
   };
 
-  return {toDoList, addToDo, deleteToDo, updateToDoStatus, updateToDoPin};
+  const editToDo = task => {
+    const newToDoList = toDoList.map(t => {
+      if (t.key === task.key) {
+        t.task = task.task;
+      }
+
+      return t;
+    });
+
+    setToDoList(newToDoList);
+  };
+
+  return {
+    toDoList,
+    addToDo,
+    deleteToDo,
+    updateToDoStatus,
+    updateToDoPin,
+    editToDo,
+  };
 };
 
 export const useViewType = () => {
