@@ -281,10 +281,10 @@ export const ToDoList = props => {
               data={currentPinnedList}
               renderItem={renderItem}
               renderHiddenItem={renderHiddenItem}
-              leftOpenValue={60}
-              stopLeftSwipe={60}
-              rightOpenValue={-120}
-              stopRightSwipe={-120}
+              leftOpenValue={80}
+              stopLeftSwipe={80}
+              rightOpenValue={-160}
+              stopRightSwipe={-160}
               disableLeftSwipe={multiSelect}
               disableRightSwipe={multiSelect}
               previewRowKey={multiSelect ? '' : currentPinnedList[0].key}
@@ -303,10 +303,10 @@ export const ToDoList = props => {
           data={tdList.filter(item => !item.pin)}
           renderItem={renderItem}
           renderHiddenItem={renderHiddenItem}
-          leftOpenValue={60}
-          stopLeftSwipe={60}
-          rightOpenValue={-120}
-          stopRightSwipe={-120}
+          leftOpenValue={80}
+          stopLeftSwipe={80}
+          rightOpenValue={-160}
+          stopRightSwipe={-160}
           disableLeftSwipe={multiSelect}
           disableRightSwipe={multiSelect}
           previewRowKey={

@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import {Headline} from 'react-native-paper';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useViewType} from '../../hooks/hooks';
 import ToDoList from '../ToDoList/ToDoList';
 import BulkActions from '../BulkActions/BulkActions';
@@ -54,19 +55,17 @@ const Home = props => {
   }, [viewType]);
 
   useEffect(() => {
-    if (toDoList.length) {
-      const idList = toDoList.reduce((deleteListId, task) => {
-        const {completed, key} = task;
+    const idList = toDoList.reduce((deleteListId, task) => {
+      const {completed, key} = task;
 
-        if (completed) {
-          deleteListId.push(key);
-        }
+      if (completed) {
+        deleteListId.push(key);
+      }
 
-        return deleteListId;
-      }, []);
+      return deleteListId;
+    }, []);
 
-      setCompletedIdList(idList);
-    }
+    setCompletedIdList(idList);
   }, [toDoList]);
 
   const handleAddToDo = () => {
@@ -195,7 +194,7 @@ const Home = props => {
                     onPress={() => {
                       setMenuVisibility(true);
                     }}>
-                    <Text style={styles.btn}>...</Text>
+                    <FontAwesome5 name="ellipsis-h" style={styles.btn} />
                   </Pressable>
                 ),
               }}
