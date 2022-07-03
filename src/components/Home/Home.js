@@ -171,7 +171,7 @@ const Home = props => {
       stickyHeaderIndices={[0]}
       horizontal={false}
       onScroll={handleOnScroll}>
-      <View style={stickyHeaderStyle}>
+      <View style={[stickyHeaderStyle, {marginTop: 15}]}>
         <View style={styles.generalMargin}>
           <View style={styles.selectTasksAndOtherActions}>
             <BulkActions

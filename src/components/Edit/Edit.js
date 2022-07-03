@@ -53,7 +53,7 @@ const Edit = props => {
   };
 
   return (
-    <View style={styles.generalMargin}>
+    <View style={[styles.generalMargin, {marginTop: 15}]}>
       <View style={styles.viewHeader}>
         <Pressable onPress={goBack}>
           <FontAwesome5 style={styles.btn} name="angle-left" />

@@ -6,19 +6,9 @@
  * @flow strict-local
  */
 
-import React, {useState} from 'react';
+import React from 'react';
 import type {Node} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
-  Platform,
-} from 'react-native';
+import {SafeAreaView, StyleSheet, View, Platform} from 'react-native';
 import Main from './components/Main/Main';
 
 const App: () => Node = () => {
@@ -36,7 +26,5 @@ const App: () => Node = () => {
     </>
   );
 };
-
-const styles = StyleSheet.create({});
 
 export default App;

@@ -4,6 +4,7 @@ import {List} from 'react-native-paper';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {SwipeListView} from 'react-native-swipe-list-view';
+import {cloneDeep} from 'lodash';
 import {Utils} from '../../utils';
 import {ToDoListStyles as styles} from './ToDoList.style';
 
@@ -84,7 +85,7 @@ export const ToDoList = props => {
   }, [isBulkPin]);
 
   const handleOnRowClick = task => {
-    const clonedCurrentOpenRows = {...currentOpenRows};
+    const clonedCurrentOpenRows = cloneDeep(currentOpenRows);
     const keys = Object.keys(clonedCurrentOpenRows);
 
     if (keys.length) {
@@ -119,11 +120,12 @@ export const ToDoList = props => {
     }
   };
 
-  // const handleRowDidClose = rowKey => {
-  //   const clonedCurrentOpenRows = [...currentOpenRows];
-  //   const newOpenRows = clonedCurrentOpenRows.filter(key => key !== rowKey);
-  //   setCurrentOpenRows(newOpenRows);
-  // };
+  const handleRowClose = rowKey => {
+    const clonedCurrentOpenRows = cloneDeep(currentOpenRows);
+    delete clonedCurrentOpenRows[rowKey];
+
+    setCurrentOpenRows(clonedCurrentOpenRows);
+  };
 
   const handleDeleteRow = rowKey => {
     Alert.alert('Would you like to delete this task?', '', [
@@ -151,7 +153,7 @@ export const ToDoList = props => {
 
     setTimeout(() => {
       // Remove corresponding row in currentOpenRows
-      const clonedCurrentOpenRows = {...currentOpenRows};
+      const clonedCurrentOpenRows = cloneDeep(currentOpenRows);
       delete clonedCurrentOpenRows[rowKey];
       setCurrentOpenRows(clonedCurrentOpenRows);
     }, 500);
@@ -290,7 +292,7 @@ export const ToDoList = props => {
               previewOpenDelay={1000}
               onRowOpen={handlRowOpen}
               onRowDidOpen={handlRowDidOpen}
-              // onRowDidClose={handleRowDidClose}
+              onRowClose={handleRowClose}
             />
           </List.Accordion>
         </View>
@@ -314,7 +316,7 @@ export const ToDoList = props => {
           previewOpenDelay={1000}
           onRowOpen={handlRowOpen}
           onRowDidOpen={handlRowDidOpen}
-          // onRowDidClose={handleRowDidClose}
+          onRowClose={handleRowClose}
         />
       ) : null}
     </>
